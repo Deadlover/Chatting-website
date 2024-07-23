@@ -1,0 +1,12 @@
+<nav class="flex justify-around bg-orange-700 p-2 text-white">
+    <a href="{% url 'home' %}">Home</a>
+    <a href="{% url 'friendlist' %}">Chat</a>
+    <div class="flex bg-white">
+        <form action="#" method="get">
+            <input type="text" placeholder="Search" name="search" id="data-search"
+                class="px-3 py-1 border-2 outline-none text-blue-600">
+            <button type="submit" class="px-5 rounded-lg bg-white"><i class="fa fa-search text-black"></i></button>
+        </form>
+    </div>
+    <a href="">{{username.username}}</a>
+</nav>

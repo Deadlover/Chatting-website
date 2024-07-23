@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>friend list</title>
+
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+
+    {% include 'home/navbar.html' %}
+    
+    <div class="w-full">
+        <p class="text-center text-2xl mt-8">Friend List</p>
+    </div>
+    <div class="flex  w-full ">
+        
+        <div class="m-auto w-1/2 mt-16">
+            
+            <a href="{% url 'chatmessage' 'Creator' %}">
+                <div class="flex shadow w-1/3 mb-11 m-auto justify-evenly bg-orange-600  rounded-md text-white hover:scale-125 ease-in-out duration-700">
+                    <div class="w-16 rounded-full">
+                        <img src="{% static 'image/animal.webp' %}" alt="" class="rounded-full h-16">
+                    </div>
+                    <div class="self-center">
+                        Creator
+                    </div>
+                </div>
+            </a>
+            
+            {% for person in friends %}
+            <a href="{% url 'chatmessage' person.channel_name %}">
+                <div class="flex shadow w-1/3 mb-11 m-auto justify-evenly bg-violet-500  rounded-md text-white hover:scale-125 ease-in-out duration-700">
+                    <div class="w-16 rounded-full">
+                        <img src="{% static 'image/animal.webp' %}" alt="" class="rounded-full h-16">
+                    </div>
+                    <div class="self-center">
+                        {{person.friend.username}}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+
+            </div>
+        </div>
+        
+</body>
+
+</html>

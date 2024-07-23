@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat app</title>
+
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+
+    {% include 'home/navbar.html' %}
+
+    <div class="w-full ">
+        <div class="m-auto w-10/12 bg-orange-600 border-4 border-orange-600 pb-1  mt-10 rounded-md ">
+            <div class="flex">
+                <img src="" alt="lol" class="w-4 h-4 rounded-full self-center mx-2">
+                {% for chat in chats %}
+                {% if chat.sender.id != username.id %}
+                <h1 class="bg-orange-500 text-white p-2 rounded self-center">{{chat.sender.username}}</h1>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="h-96 bg-white overflow-y-auto " id="chat-log">
+                {% for chat in chats %}
+                {% if chat.sender.id != username.id %}
+                <div class="py-2 flex ">
+                    <img src="" alt="lol" class="w-4 h-4 rounded-full self-end ml-1">
+                    <p class="px-2 py-1 rounded-lg ml-2 bg-violet-500 inline-block text-white">
+                        {{chat.content}}
+                    </p>
+                </div>
+                {% else %}
+                <div class="py-2 ">
+                    <div class="flex flex-row-reverse">
+                        <img src="" alt="lol" class="w-4 h-4 rounded-full self-end mr-1">
+                        <p class="px-2 py-1 rounded-lg mr-2 bg-orange-500 inline-block text-white">
+                            {{chat.content}}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+
+
+            </div>
+
+            <!-- for displaying msg -->
+            <div class="flex  p-2 rounded">
+                <input type="text" id="chat-msg-input" class="w-full rounded outline-none px-2"> <!-- for typing msg -->
+                <input type="button" value="send" id="chat-msg-submit"
+                    class="mr-4 text-white px-2 py-1  rounded bg-violet-600 hover:text-white active:bg-violet-800">
+                <!-- for sending msg -->
+            </div>
+
+        </div>
+    </div>
+
+
+    {{groupname|json_script:"group-name"}} <!-- django say it's a safe way to use says django -->
+    {{username.id|json_script:"userid"}} <!-- django say it's a safe way to use says django -->
+    <!-- group-name is id  -->
+
+    <script>
+        const groupName = JSON.parse(document.getElementById('group-name').textContent)
+        const userid = JSON.parse(document.getElementById('userid').textContent)
+        console.log(groupName);
+
+        // for async
+        var ws = new WebSocket(
+            'ws://'
+            + window.location.host  // this gives 127.0.0.1
+            + '/ws/ajwc/'
+            + groupName  // appends the groupname in url
+            + '/'
+        )
+
+        ws.onopen = function (event) {
+            console.log("websocket conntection open...")
+        }
+
+
+        ws.onmessage = function (event) {   // this will activate after chat_message send data or server sends data
+            console.log("msg receives", event);
+            // converting str into js object
+            const msg = JSON.parse(event.data)
+            console.log(msg.msg.msg); // accessing the message
+            console.log(msg.msg.user); // accessing the message
+
+            // add message in chat area
+            AddChatMessage(msg.msg.msg, msg.msg.user)
+        }
+
+        ws.onclose = function (event) {
+            console.log("connection close", event);
+        }
+        
+        const chatLog = document.querySelector('#chat-log');
+
+        function AddChatMessage(msg, user) {
+
+            if (userid == user) {
+
+
+                const messageHTML = ` <div class="py-2 ">
+                                <div class="flex flex-row-reverse">
+                                    <img src="" alt="lol" class="w-4 h-4 rounded-full self-end mr-1">
+                                    <p class="px-2 py-1 rounded-lg mr-2 bg-orange-500 inline-block text-white">
+                                        ${msg}
+                                        </p>
+                                        </div>
+                                        </div>`
+
+
+                // document.querySelector('#chat-log').insertAdjacentHTML('beforeend', byMessage);
+                chatLog.insertAdjacentHTML('beforeend', messageHTML);
+
+                // Scroll to the latest message
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+            else {
+                const messageHTML = ` <div class="py-2 flex ">
+                    <img src="" alt="lol" class="w-4 h-4 rounded-full self-end ml-1">
+                    <p class="px-2 py-1 rounded-lg ml-2 bg-violet-500 inline-block text-white">
+                        ${msg}
+                    </p>
+                </div>`
+                // document.querySelector('#chat-log').insertAdjacentHTML('beforeend', fromMessage);
+                chatLog.insertAdjacentHTML('beforeend', messageHTML);
+                
+                // Scroll to the latest message
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+        }
+        chatLog.scrollTop = chatLog.scrollHeight;
+
+
+        document.getElementById('chat-msg-submit').onclick = function (event) {
+            const messinputDom = document.getElementById('chat-msg-input')
+            const message = messinputDom.value  // js object cannot be send so convert into string with key-value pair
+            ws.send(JSON.stringify({
+                'user': userid,
+                'msg': message  // sending msg as string and in dict form
+            }))
+            messinputDom.value = ''
+            // AddMessage(message)
+        }
+
+        // function AddMessage(msg) {
+        //     const message = ` <div  class="py-2 ">
+        //             <div class="flex float-right">
+        //                 <p class="px-2 py-1 rounded-lg mr-2 bg-orange-500 inline-block text-white">
+        //                     ${msg}
+        //                 </p>
+        //                 <img src="" alt="lol" class="w-4 h-4 rounded-full self-end mr-1">
+        //             </div>
+        //         </div>`
+
+        //     document.querySelector('#chat-log').insertAdjacentHTML('beforeend', message);
+        // }
+
+        function sendMessageToCreator() {
+            if (localStorage.getItem('fetchPerformed') !== 'true') {
+
+                fetch('/send_by_creator/', { method: 'GET' })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.status);
+                        localStorage.setItem('fetchPerformed', 'true');
+                    })
+                    .catch((error) => {
+                        console.log('Error:', error);
+                    });
+            }
+        }
+
+        window.addEventListener("load", function () {
+            if (groupName == 'Creator') {
+                sendMessageToCreator();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
